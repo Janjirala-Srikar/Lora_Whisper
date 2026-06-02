@@ -1,0 +1,66 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pyd
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual environments
+lora/Lib/
+lora/Scripts/
+lora/Include/
+lora/pyvenv.cfg
+lora/pyvenv.cfg
+lora/*.egg-info/
+venv/
+.venv/
+ENV/
+.env/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Logs and runtime files
+*.log
+*.pot
+*.mo
+*.db
+*.sqlite3
+
+# Uploaded and model data directories
+speech_demo/backend/uploads/
+speech_demo/models/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Pytest
+.cache/
+
+# MyPy
+.mypy_cache/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# local environment
+.env
+.env.*

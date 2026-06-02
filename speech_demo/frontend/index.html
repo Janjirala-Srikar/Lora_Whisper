@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domain Adaptation ASR - LoRA Evaluator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <main class="workspace">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">LA</div>
+          <div>
+            <p class="eyebrow">ASR Benchmark Suite</p>
+            <h1>LoRA Domain Evaluator</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="status-pill online">API Ready</span>
+          <span class="status-pill">Whisper + LoRA</span>
+        </div>
+      </header>
+
+      <section class="summary-grid" aria-label="Evaluation summary">
+        <div class="summary-card">
+          <span class="summary-label">Domains</span>
+          <strong>3</strong>
+          <span>Sports, Weather, Music</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Metric</span>
+          <strong>WER</strong>
+          <span>Baseline vs adapted model</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Inspection</span>
+          <strong>Token Diff</strong>
+          <span>Reference-aligned transcript view</span>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <section class="panel input-panel" id="inputPanel">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">Input</p>
+              <h3>Evaluation Setup</h3>
+            </div>
+            <span class="panel-caption">Audio sample and ground truth</span>
+          </div>
+
+          <div class="control-row">
+            <div class="control-group upload-group" id="dropZone">
+              <label class="upload-label" for="audioFile">
+                <span class="upload-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/>
+                    <path d="M19 11v1a7 7 0 0 1-14 0v-1M12 19v3M8 22h8"/>
+                  </svg>
+                </span>
+                <span>
+                  <strong id="fileLabel">Drop audio file or click to browse</strong>
+                  <small>WAV, MP3, M4A, or browser-supported audio</small>
+                </span>
+              </label>
+              <input type="file" id="audioFile" accept="audio/*">
+            </div>
+
+            <div class="control-group domain-group">
+              <label class="field-label" for="domain">Domain</label>
+              <div class="select-wrapper">
+                <select id="domain">
+                  <option value="sports">Sports</option>
+                  <option value="weather">Weather</option>
+                  <option value="music">Music</option>
+                </select>
+                <svg class="select-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-group ref-group">
+            <label class="field-label" for="reference">Reference Transcript</label>
+            <textarea id="reference" placeholder="Paste the ground-truth transcript here..." rows="6" required></textarea>
+          </div>
+
+          <button id="evalBtn" onclick="evaluateAudio()">
+            <span class="btn-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </span>
+            <span class="btn-text">Run Evaluation</span>
+            <span class="btn-spinner" id="spinner"></span>
+          </button>
+        </section>
+
+        <section class="panel metric-panel" id="resultsPanel">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">Results</p>
+              <h3>Quality Metrics</h3>
+            </div>
+            <span class="panel-caption">WER comparison</span>
+          </div>
+
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-label">Base WER</div>
+              <div class="metric-value" id="baseWer">--</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">LoRA WER</div>
+              <div class="metric-value lora" id="loraWer">--</div>
+            </div>
+            <div class="metric-card highlight">
+              <div class="metric-label">Improvement</div>
+              <div class="metric-value improvement" id="improvement">--</div>
+            </div>
+          </div>
+
+          <div class="legend">
+            <span class="legend-item"><span class="swatch correct"></span> Correct token</span>
+            <span class="legend-item"><span class="swatch wrong"></span> Edited token</span>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel transcript-panel">
+        <div class="panel-head">
+          <div>
+            <p class="section-label">Transcript Review</p>
+            <h3>Model Output Comparison</h3>
+          </div>
+          <span class="panel-caption">Aligned against reference transcript</span>
+        </div>
+
+        <div class="transcript-grid">
+          <div class="transcript-card">
+            <div class="transcript-header">
+              <span class="model-badge base">Base Whisper</span>
+            </div>
+            <div class="transcript-body" id="baseText">
+              <span class="placeholder-text">Transcription will appear here after evaluation.</span>
+            </div>
+          </div>
+
+          <div class="transcript-card">
+            <div class="transcript-header">
+              <span class="model-badge lora-badge">LoRA Adapted</span>
+            </div>
+            <div class="transcript-body" id="loraText">
+              <span class="placeholder-text">Transcription will appear here after evaluation.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
